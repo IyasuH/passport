@@ -28,7 +28,7 @@ async def mostCommonNameLocation(location: Location, limit: str = "1", name_type
         # result_instance = response_handler_query(results)
         print(f"[INFO] Results: {results[1]}")
         for result in results[1]:
-            result_instance.append({name_type_: result[name_type_], "count": result["name_count"]})
+            result_instance.append({"name": result[name_type_], "count": result["name_count"]})
             # result_dict = dict(result)
             print(f"[INFO] Result: {result_instance}")
         # result_instance = results[1][0][name_type_]
