@@ -1,3 +1,4 @@
+from controllers.top_locations import topLocations
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from slowapi import Limiter, _rate_limit_exceeded_handler
@@ -44,7 +45,7 @@ async def root(request: Request):
     """
     all_values = await countAll()
     print(f"[INFO] Total number of rows in the table is {all_values}")
-    return {"number of rows": f"{all_values}"}
+    return {all_values}
 
 @app.get("/api/v1/count_identity_location/{location}")
 @limiter.limit("5/minute")
@@ -66,7 +67,6 @@ async def count_identity_name_location(request: Request, name: str, location: Lo
         :param location: location - Location
     """
     count = await countSpecifcNameAndLocation(name, location, name_type)
-    print(f"count is {count}")
     return count
 
 @app.get("/api/v1/count_identity_name/{name}/{name_type}")
@@ -95,22 +95,23 @@ async def query_identity_id(id: int, request: Request):
         return identity
     
 @app.get("/api/v1/common_name/{location}/{limit}/{name_type}")
-@limiter.limit("5/minute")
+# @limiter.limit("5/minute")
 async def common_name(request: Request, location: Location, limit: int = 1, name_type: NameType = NameType.Name):
     """
     Most common name for given location
         :parma location: Location
     """
     name_list = await mostCommonNameLocation(location, limit, name_type)
+    print(f"[info] common list is {name_list} for location {location}")
     if name_list == []:
         return {"message": "result not found"}
     else:
         print(f"name is {name_list}")
         return name_list
     
-@app.get("/api/v1/common_name/{limit}/{name_type}")
+@app.get("/api/v1/total_common_name/{limit}/{name_type}")
 @limiter.limit("5/minute")
-async def common_name(request: Request, limit: int = 1, name_type: NameType = NameType.Name):
+async def total_common_name(request: Request, limit: int = 1, name_type: NameType = NameType.Name):
     """Most common name
     entirely on the database
     """
@@ -134,6 +135,20 @@ async def query_identity_request_no(request_no: str, request: Request):
     else:
         print(f"identity is {identity}")
         return identity
+
+@app.get("/api/v1/top_locations/{limit}")
+# @limiter.limit("5/minute")
+async def top_locations(request: Request, limit: str = "5"):
+    """
+    To get top locations with the most identities
+        :param limit: limit - str
+    """
+    top_locations = await topLocations(limit)
+    if top_locations is None:
+        return {"message": "result not found"}
+    else:
+        print(f"top_locations is {top_locations}")
+        return top_locations
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
